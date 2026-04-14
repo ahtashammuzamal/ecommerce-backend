@@ -2,6 +2,8 @@
 
 Backend API for a portfolio e-commerce project built with Node.js, Express, Prisma, and PostgreSQL. This repository is responsible for authentication, product management, cart operations, order processing, category data, and image uploads.
 
+The application is configured to run against a deployed Supabase Postgres database while keeping the frontend in a separate repository.
+
 Companion frontend repository: [ecommerce-frontend](https://github.com/ahtashammuzamal/ecommerce-frontend)
 
 ## Portfolio Context
@@ -27,13 +29,17 @@ This project was built to demonstrate backend engineering skills that are common
 - Admin order review with status updates
 - Category retrieval for frontend product filters and forms
 - Product image uploads through Multer and Cloudinary
+- Category image seeding through Cloudinary secure URLs for frontend-safe rendering
+- Supabase Postgres integration for hosted database deployments
 
 ## Tech Stack
 
 - Node.js
 - Express 5
 - PostgreSQL
+- Supabase Postgres
 - Prisma ORM
+- Prisma Postgres adapter
 - JWT
 - bcryptjs
 - Multer
@@ -62,6 +68,15 @@ The API is backed by PostgreSQL and Prisma models for:
 - `OrderItem`
 
 It also uses role and order-status enums to support authorization and order workflow management.
+
+## Deployment Database Setup
+
+This project uses Supabase as the hosted PostgreSQL provider.
+
+- `DATABASE_URL` is used by the running API.
+- `DIRECT_URL` is reserved for Prisma migrations and schema operations.
+- The runtime Prisma client uses `@prisma/adapter-pg` with a `pg` pool so the app can connect cleanly to Supabase in deployed environments.
+- The runtime connection strips `sslmode=require` from the pool connection string and enables SSL through the `pg` client configuration.
 
 ## Getting Started
 
@@ -105,6 +120,13 @@ For Supabase, use two database URLs:
 
 If you are using Supabase connection strings, append `?sslmode=require` unless the copied URL already includes it.
 
+Example Supabase setup:
+
+```env
+DATABASE_URL="postgresql://postgres.<project-ref>:password@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require"
+DIRECT_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres?sslmode=require"
+```
+
 ### 4. Run database migrations
 
 ```bash
@@ -117,6 +139,8 @@ npx prisma migrate dev
 npm run seed
 ```
 
+The category seeder uploads local files from `public/categories` to Cloudinary and stores the returned `secure_url` values in the database. This makes the images usable from the separate frontend without relying on backend-local static file paths.
+
 ### 6. Start the development server
 
 ```bash
@@ -128,7 +152,7 @@ The API will be available at `http://localhost:5000`.
 ## Available Scripts
 
 - `npm run dev` starts the API with Nodemon
-- `npm run seed` seeds starter categories
+- `npm run seed` uploads category images to Cloudinary and seeds starter categories
 
 ## API Overview
 
@@ -186,12 +210,14 @@ The API will be available at `http://localhost:5000`.
 - Query-driven product listing for frontend filtering and sorting
 - Transactional order creation with cart cleanup
 - Media upload handling for product management
+- Hosted Postgres integration using Supabase
+- Frontend-safe category image delivery via Cloudinary secure URLs
 
 ## Next Improvements
 
 - Add automated API and integration tests
 - Add request validation middleware for stricter input handling
-- Add deployment, logging, and CI/CD documentation
+- Add deployment, logging, and CI/CD automation documentation
 
 ## Notes
 
