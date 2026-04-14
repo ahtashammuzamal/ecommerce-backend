@@ -21,7 +21,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://ecommerce-backend-e5lf.onrender.com",
+      "https://atelier-goods.vercel.app/",
     ],
     credentials: true,
   }),
