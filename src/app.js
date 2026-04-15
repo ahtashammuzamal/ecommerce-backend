@@ -21,7 +21,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://atelier-goods.vercel.app/",
+      "https://atelier-goods.vercel.app",
     ],
     credentials: true,
   }),
