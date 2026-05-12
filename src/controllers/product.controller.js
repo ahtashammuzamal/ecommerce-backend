@@ -83,8 +83,6 @@ export const getProducts = async (req, res) => {
       },
     };
 
-    console.log(priceFilter);
-
     const where = {
       ...searchFilter,
       ...categoryFilter,
@@ -171,10 +169,18 @@ export const updateProduct = async (req, res) => {
     "price",
     "categoryId",
     "stock",
+    "isFeatured",
   ];
 
-  const { title, description, price, categoryId, stock, existingImages } =
-    req.body;
+  const {
+    title,
+    description,
+    price,
+    categoryId,
+    stock,
+    existingImages,
+    isFeatured,
+  } = req.body;
 
   try {
     const id = parseInt(req.params.id);
@@ -222,6 +228,7 @@ export const updateProduct = async (req, res) => {
         category: {
           connect: { id: parseInt(categoryId) },
         },
+        isFeatured: isFeatured === "true",
       },
     });
 

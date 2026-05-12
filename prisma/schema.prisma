@@ -45,6 +45,7 @@ model Product {
   category    Category    @relation(fields: [categoryId], references: [id])
   categoryId  Int
   stock       Int         @default(0)
+  isFeatured  Boolean @default(false)
   cartItems   CartItem[]
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
