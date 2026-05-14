@@ -1,34 +1,34 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment Variables
 .env
 .env.test
 .env.production
 
-# Build outputs
-/dist
-/build
+# Build / Runtime
+dist/
+build/
+generated/
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# OS specific
-.DS_Store
-Thumbs.db
+# Prisma
+/prisma/migrations/
+# Only ignore migrations if you are in a prototyping phase. 
+# For production, you usually commit them.
 
-# Editors
-.idea/
+# Editor / IDE
 .vscode/
+.idea/
 *.swp
 *.swo
 
-# Prisma
-/generated/prisma
+# OS Specific
+.DS_Store
+Thumbs.db

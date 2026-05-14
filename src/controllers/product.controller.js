@@ -52,6 +52,7 @@ export const getProducts = async (req, res) => {
       order = "desc",
       page = 1,
       limit = 10,
+      isFeatured,
     } = req.query;
 
     const searchFilter = search
@@ -83,10 +84,13 @@ export const getProducts = async (req, res) => {
       },
     };
 
+    const featuredFilter = isFeatured === 'true' ? { isFeatured: true } : {};
+
     const where = {
       ...searchFilter,
       ...categoryFilter,
       ...priceFilter,
+      ...featuredFilter,
     };
 
     const orderBy = {
