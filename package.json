@@ -7,7 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "seed": "node src/seed/categories.seed.js"
+    "seed": "node src/seed/categories.seed.js",
+    "build": "npx prisma generate",
+    "postinstall": "npx prisma generate",
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "pg": "^8.20.0",
+    "redis": "^5.12.1",
     "slugify": "^1.6.6"
   }
 }

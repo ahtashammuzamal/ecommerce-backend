@@ -1,6 +1,9 @@
 import prisma from "../config/prisma.js";
 import { isValidUpdate } from "../utils/isValidUpdate.js";
 import { uploadBuffer } from "../utils/uploadToCloudinary.js";
+import redisClient from "../config/redis.js";
+import { CACHE_TTL } from "../constants/redis.js";
+import { clearProductCache } from "../lib/redis.js";
 
 export const createProduct = async (req, res) => {
   try {
@@ -28,6 +31,8 @@ export const createProduct = async (req, res) => {
         stock: Number(stock),
       },
     });
+
+    await clearProductCache();
 
     res.status(201).json({
       message: "Product created successfully",
@@ -84,7 +89,7 @@ export const getProducts = async (req, res) => {
       },
     };
 
-    const featuredFilter = isFeatured === 'true' ? { isFeatured: true } : {};
+    const featuredFilter = isFeatured === "true" ? { isFeatured: true } : {};
 
     const where = {
       ...searchFilter,
@@ -103,6 +108,20 @@ export const getProducts = async (req, res) => {
     const take = pageSize;
     const skip = (pageNumber - 1) * pageSize;
 
+    const cacheKey = `products:${JSON.stringify({ where, orderBy, pageNumber, pageSize })}`;
+
+    const cachedProducts = await redisClient.get(cacheKey);
+
+    if (cachedProducts) {
+      console.log("Serving products from Redis");
+
+      return res.status(200).json(JSON.parse(cachedProducts));
+    }
+
+    console.log("Serving products from DB");
+
+    const total = await prisma.product.count({ where });
+
     const products = await prisma.product.findMany({
       where,
       orderBy,
@@ -113,9 +132,23 @@ export const getProducts = async (req, res) => {
       },
     });
 
-    const total = await prisma.product.count({ where });
+    await redisClient.set(
+      cacheKey,
+      JSON.stringify({
+        products,
+        meta: {
+          total,
+          page: pageNumber,
+          limit: pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      }),
+      {
+        EX: CACHE_TTL,
+      },
+    );
 
-    res.json({
+    res.status(200).json({
       products,
       meta: {
         total,
@@ -141,6 +174,16 @@ export const getSingleProduct = async (req, res) => {
         message: "Product id is required",
       });
     }
+
+    const cachedProduct = await redisClient.get(`product:${id}`);
+
+    if (cachedProduct) {
+      console.log(`Serving product - ${id} from Redis`);
+      return res.status(200).json(JSON.parse(cachedProduct));
+    }
+
+    console.log(`Serving product - ${id} from DB`);
+
     const product = await prisma.product.findUnique({
       where: { id },
       include: { category: true },
@@ -152,10 +195,11 @@ export const getSingleProduct = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      message: "Products fetch sucessfully",
-      product,
+    await redisClient.set(`product:${id}`, JSON.stringify({ product }), {
+      EX: CACHE_TTL,
     });
+
+    res.status(200).json({ product });
   } catch (error) {
     res.status(500).json({
       message: "Internal server error",
@@ -236,6 +280,8 @@ export const updateProduct = async (req, res) => {
       },
     });
 
+    await clearProductCache();
+
     res.json({
       message: "Product updated successfully",
       product: updatedProduct,
@@ -263,6 +309,8 @@ export const deleteProduct = async (req, res) => {
     const deletedProduct = await prisma.product.delete({
       where: { id },
     });
+
+    await clearProductCache();
 
     res.json({
       message: "Product deleted successfull",

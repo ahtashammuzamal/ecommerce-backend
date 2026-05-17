@@ -2,8 +2,14 @@ import prisma from "../config/prisma.js";
 
 export const getCart = async (req, res) => {
   try {
+    console.log("req?.user", req?.user);
+
+    if (!req?.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const cart = await prisma.cart.findUnique({
-      where: { userId: req.user.id },
+      where: { userId: req?.user?.id },
       include: {
         cartItems: {
           orderBy: {
@@ -16,9 +22,8 @@ export const getCart = async (req, res) => {
 
     if (!cart) {
       return res.status(200).json({
-        success: false,
+        success: true,
         totalCartItems: 0,
-        message: "Cart does not exist",
       });
     }
 

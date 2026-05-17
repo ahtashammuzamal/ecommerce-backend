@@ -3,14 +3,27 @@ import prisma from "../config/prisma.js";
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const token = req.header("Authorization").replace("Bearer ", "");
+    const authHeader = req.header("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Unauthorized - Token missing or invalid format",
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
     if (!token) {
-      return res.status(400).json({
-        message: "Unauthorized",
+      return res.status(401).json({
+        message: "Unauthorized - Token missing",
       });
     }
 
     const decode = jwt.decode(token);
+
+    if (!decode || !decode.id) {
+      return res.status(401).json({
+        message: "Unauthorized - Invalid token payload",
+      });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: decode.id, tokens: { has: token } },
