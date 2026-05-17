@@ -38,6 +38,7 @@ This project was built to demonstrate backend engineering skills that are common
 - Express 5
 - PostgreSQL
 - Supabase Postgres
+- Redis (Caching Layer)
 - Prisma ORM
 - Prisma Postgres adapter
 - JWT
@@ -80,6 +81,29 @@ This project uses Supabase as the hosted PostgreSQL provider.
 - The runtime Prisma client uses `@prisma/adapter-pg` with a `pg` pool so the app can connect cleanly to Supabase in deployed environments.
 - The runtime connection strips `sslmode=require` from the pool connection string and enables SSL through the `pg` client configuration.
 
+## Redis Caching Architecture
+
+To achieve sub-second response times, the API leverages Redis to cache high-read endpoints.
+
+### Caching Strategy
+
+1. **Product Catalog (`products:<stringified-filters>`)**:
+   - Query filters, sorting criteria, search keywords, and pagination parameters are serialized and hashed to build dynamic, multi-dimensional cache keys.
+   - Ensures filtered/paginated results are lightning-fast.
+2. **Single Product (`product:<id>`)**:
+   - Product details pages are cached by product ID.
+3. **Categories (`categories:all`)**:
+   - The primary categories list, which includes nested products, is cached to optimize home page and nav bar loading times.
+
+### Cache Invalidation (Active Consistency)
+
+To ensure zero stale-data bugs, the API utilizes proactive invalidation:
+- Whenever a product is **created**, **updated**, or **deleted**, the system automatically clears the entire products cache (`products:*`), individual product detail caches (`product:*`), and the primary categories cache (`categories:all`), keeping all lists and category product counts perfectly in sync.
+
+### Local & Production Resiliency
+
+- **Deployment**: Connects dynamically via `REDIS_URL` in production (e.g. Render Redis, Upstash) or defaults to username/password/socket settings locally.
+
 ## Getting Started
 
 ### 1. Clone the repository
@@ -113,6 +137,15 @@ JSON_SECRET_KEY="replace-with-a-long-random-secret"
 CLOUDINARY_CLOUD_NAME="your-cloudinary-cloud-name"
 CLOUDINARY_API_KEY="your-cloudinary-api-key"
 CLOUDINARY_API_SECRET="your-cloudinary-api-secret"
+
+# Redis Config (Cloud/Render Setup)
+REDIS_URL="redis://localhost:6379" # Preferred on Render/Heroku
+
+# Redis Local Config (Optional fallback)
+REDIS_HOST="localhost"
+REDIS_PORT=6379
+REDIS_USERNAME=""
+REDIS_PASSWORD=""
 ```
 
 For Supabase, use two database URLs:
