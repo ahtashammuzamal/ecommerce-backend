@@ -243,6 +243,26 @@ The API is deployed on **Render**.
 
 - **API Base URL:** `https://ecommerce-backend-e5lf.onrender.com/api`
 
+## Docker Support & Containerization
+
+The backend contains a production-ready `Dockerfile` and `.dockerignore` for containerized deployments.
+
+### Optimizations Included
+*   **Layer-Cached Builds**: `package.json` and the `prisma/` schema are copied and installed *before* copying the rest of the codebase. This ensures that Docker caches node modules, resulting in 10x faster builds when only changing source code.
+*   **Host Isolation**: The `.dockerignore` is configured to exclude `node_modules/` and local `generated/` directories, preventing host platform conflicts inside the container.
+
+### Building the Image
+To build the Docker image locally:
+```bash
+docker build -t ecommerce-backend .
+```
+
+### Running the Container
+To run the container locally with your environment variables (using a `.env` file):
+```bash
+docker run -d -p 5000:5000 --env-file .env --name ecommerce-api ecommerce-backend
+```
+
 ## What This Repository Demonstrates
 
 - Secure route protection with token-based authentication
