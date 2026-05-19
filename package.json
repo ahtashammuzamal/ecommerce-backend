@@ -5,7 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:coverage": "vitest run --coverage",
     "dev": "nodemon src/server.js",
     "seed": "node src/seed/categories.seed.js",
     "build": "npx prisma generate",
@@ -16,8 +20,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.6",
     "nodemon": "^3.1.11",
-    "prisma": "^6.19.0"
+    "prisma": "^6.19.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.6"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",
